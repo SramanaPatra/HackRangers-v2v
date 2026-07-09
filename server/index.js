@@ -1,0 +1,25 @@
+const express = require("express");
+const cors = require("cors");
+require("dotenv").config();
+
+const onboardingRoutes = require("./routes/onboarding.routes");
+const circlesRoutes = require("./routes/circles.routes");
+const aiCompanionRoutes = require("./routes/aiCompanion.routes");
+
+const app = express();
+
+app.use(cors({ origin: process.env.CLIENT_ORIGIN }));
+app.use(express.json());
+
+app.use("/api/onboarding", onboardingRoutes);
+app.use("/api/circles", circlesRoutes);
+app.use("/api/ai-companion", aiCompanionRoutes);
+
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
+const PORT = process.env.PORT || 4000;
+app.listen(PORT, () => {
+  console.log(`MindEase server running on port ${PORT}`);
+});

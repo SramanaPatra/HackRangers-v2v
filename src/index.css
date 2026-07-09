@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  h1, h2, h3 {
+    @apply font-display text-ink;
+  }
+  ::selection {
+    @apply bg-blossom-light text-white;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-cream rounded-card shadow-soft p-6;
+  }
+  .btn-primary {
+    @apply bg-blossom text-white rounded-full px-6 py-3 font-body font-semibold
+           shadow-lift hover:bg-blossom-dark transition-colors duration-200
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom-dark focus-visible:ring-offset-2;
+  }
+  .btn-ghost {
+    @apply bg-transparent text-ink border border-ink/15 rounded-full px-6 py-3 font-body font-semibold
+           hover:bg-ink/5 transition-colors duration-200
+           focus:outline-none focus-visible:ring-2 focus-visible:ring-ink/30 focus-visible:ring-offset-2;
+  }
+  .eyebrow {
+    @apply font-mono text-xs tracking-widest uppercase text-blossom-dark/70;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
