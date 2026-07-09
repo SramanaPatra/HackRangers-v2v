@@ -1,3 +1,6 @@
+import MoodExportButton from "../components/MoodExportButton.jsx";
+// inside the return, near the top:
+<MoodExportButton entries={sampleData.map(d => ({ date: d.day, moodScore: d.mood }))} userName="You" />
 import { useState, useEffect } from 'react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
