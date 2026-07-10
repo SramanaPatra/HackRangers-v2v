@@ -9,6 +9,10 @@ const moodRoutes = require("./routes/mood.routes");
 
 const app = express();
 
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
+});
+
 app.use(cors({ origin: process.env.CLIENT_ORIGIN }));
 app.use(express.json());
 
@@ -18,10 +22,6 @@ app.use("/api/ai-companion", aiCompanionRoutes);
 app.use("/api/mood", moodRoutes);
 const usersRoutes = require("./routes/users.routes");
 app.use("/api/users", usersRoutes);
-
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
-});
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
