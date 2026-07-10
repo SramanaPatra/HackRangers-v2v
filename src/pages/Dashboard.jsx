@@ -1,104 +1,55 @@
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import MoodExportButton from "../components/MoodExportButton.jsx";
-// inside the return, near the top:
-<MoodExportButton entries={sampleData.map(d => ({ date: d.day, moodScore: d.mood }))} userName="You" />
-import { useState, useEffect } from 'react'
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 
+const sampleData = [
+  { day: "Mon", date: "2026-07-06", mood: 3 },
+  { day: "Tue", date: "2026-07-07", mood: 2 },
+  { day: "Wed", date: "2026-07-08", mood: 3 },
+  { day: "Thu", date: "2026-07-09", mood: 4 },
+  { day: "Fri", date: "2026-07-10", mood: 3 },
+  { day: "Sat", date: "2026-07-11", mood: 5 },
+  { day: "Sun", date: "2026-07-12", mood: 4 },
+];
 export default function Dashboard() {
-  const [trendData, setTrendData] = useState([])
-  const [averageMood, setAverageMood] = useState(0)
-  const [streak, setStreak] = useState(0)
-
-  useEffect(() => {
-    const saved = localStorage.getItem('journalEntries')
-    if (saved) {
-      const entries = JSON.parse(saved)
-      
-      if (entries.length === 0) {
-        setTrendData([])
-        setAverageMood(0)
-        setStreak(0)
-        return
-      }
-
-      // Calculate mood over time
-      const moodMap = {}
-      entries.forEach(entry => {
-        const date = new Date(entry.date).toLocaleDateString('en-US', { 
-          weekday: 'short' 
-        })
-        const moodScore = ['Rough', 'Low', 'Okay', 'Good', 'Great'].indexOf(entry.mood) + 1
-        if (!moodMap[date]) {
-          moodMap[date] = { sum: 0, count: 0 }
-        }
-        moodMap[date].sum += moodScore
-        moodMap[date].count += 1
-      })
-
-      // Get last 7 days or all data if less
-      const dates = Object.keys(moodMap)
-      const last7Dates = dates.slice(-7)
-      
-      const chartData = last7Dates.map(date => ({
-        date,
-        mood: Math.round((moodMap[date].sum / moodMap[date].count) * 10) / 10
-      }))
-      setTrendData(chartData)
-
-      // Calculate average mood
-      const allScores = entries.map(e => ['Rough', 'Low', 'Okay', 'Good', 'Great'].indexOf(e.mood) + 1)
-      const avg = allScores.reduce((a, b) => a + b, 0) / allScores.length
-      setAverageMood(Math.round(avg * 10) / 10)
-
-      // Calculate streak (days with entries in last 7 days)
-      const last7Days = entries.filter(e => {
-        const days = (Date.now() - new Date(e.date).getTime()) / (1000 * 60 * 60 * 24)
-        return days <= 7
-      })
-      setStreak(last7Days.length)
-    }
-  }, [])
+  const avg = (sampleData.reduce((s, d) => s + d.mood, 0) / sampleData.length).toFixed(1);
+  const streak = 4;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="font-display text-3xl text-ink">Your Trends</h1>
-      <p className="text-ink-light">The last 7 days.</p>
+    <div className="animate-driftIn">
+      <p className="eyebrow mb-2">Your trends</p>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-3xl font-medium">The last 7 days.</h1>
+        <MoodExportButton
+         entries={sampleData.map((d) => ({ date: d.date, moodScore: d.mood }))}
+          userName="You"
+        />
+      </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid sm:grid-cols-2 gap-4 mb-6">
         <div className="card">
-          <p className="text-sm text-ink-light">Average mood</p>
-          <p className="font-display text-3xl text-ink">
-            {averageMood > 0 ? `${averageMood}/5` : '—'}
-          </p>
+          <p className="text-ink-light text-sm mb-1">Average mood</p>
+          <p className="font-mono text-4xl text-blossom-dark">{avg}<span className="text-lg text-ink-light">/5</span></p>
         </div>
         <div className="card">
-          <p className="text-sm text-ink-light">Check-in streak</p>
-          <p className="font-display text-3xl text-ink">
-            {streak > 0 ? `${streak} days` : '—'}
-          </p>
+          <p className="text-ink-light text-sm mb-1">Check-in streak</p>
+          <p className="font-mono text-4xl text-sage-dark">{streak}<span className="text-lg text-ink-light"> days</span></p>
         </div>
       </div>
 
       <div className="card">
-        <h3 className="font-display text-lg text-ink mb-4">Mood over time</h3>
-        {trendData.length > 0 ? (
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={trendData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f0e8ec" />
-                <XAxis dataKey="date" stroke="#7A3A50" />
-                <YAxis domain={[0, 5]} stroke="#7A3A50" />
-                <Tooltip />
-                <Line type="monotone" dataKey="mood" stroke="#D6336C" strokeWidth={2} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        ) : (
-          <div className="h-64 flex items-center justify-center text-ink-light">
-            <p>No journal entries yet. Start tracking your mood!</p>
-          </div>
-        )}
+        <p className="font-medium mb-6">Mood over time</p>
+        <ResponsiveContainer width="100%" height={260}>
+          <LineChart data={sampleData} margin={{ left: -20 }}>
+            <CartesianGrid stroke="#4A1D2E" strokeOpacity={0.06} vertical={false} />
+            <XAxis dataKey="day" stroke="#4A1D2E" fontSize={12} tickLine={false} axisLine={false} />
+            <YAxis domain={[1, 5]} stroke="#4A1D2E" fontSize={12} tickLine={false} axisLine={false} />
+            <Tooltip
+              contentStyle={{ borderRadius: 16, border: "none", boxShadow: "0 8px 30px -8px rgba(74,29,46,0.25)" }}
+            />
+            <Line type="monotone" dataKey="mood" stroke="#D6336C" strokeWidth={3} dot={{ r: 5, fill: "#D6336C" }} />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </div>
-  )
+  );
 }
