@@ -66,3 +66,19 @@ CREATE TABLE messages (
 );
 
 CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
+ALTER TABLE users ADD COLUMN phone VARCHAR(20) NOT NULL DEFAULT '';
+ALTER TABLE users ALTER COLUMN phone DROP DEFAULT;
+
+CREATE TABLE mood_entries (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  mood_score SMALLINT NOT NULL CHECK (mood_score >= 1 AND mood_score <= 5),
+  tags TEXT[] NOT NULL DEFAULT '{}',
+  note TEXT,
+  entry_date DATE NOT NULL DEFAULT CURRENT_DATE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, entry_date)
+);
+
+CREATE INDEX idx_mood_entries_user_id ON mood_entries(user_id);
+CREATE INDEX idx_mood_entries_entry_date ON mood_entries(entry_date);

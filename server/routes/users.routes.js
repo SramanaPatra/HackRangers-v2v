@@ -1,9 +1,10 @@
 const express = require("express");
 const requireAuth = require("../middleware/requireAuth");
-const { chat } = require("../controllers/aiCompanion.controller");
+const { getMe, updateMe } = require("../controllers/users.controller");
 
 const router = express.Router();
 
-router.post("/chat", requireAuth, chat);
+router.get("/me", requireAuth, getMe);
+router.put("/me", requireAuth, updateMe);
 
 module.exports = router;

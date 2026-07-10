@@ -14,6 +14,7 @@ export default function Onboarding() {
   const [form, setForm] = useState({
     name: "",
     age: "",
+    phone: "",
     role: "",
     email: "",
     password: "",
@@ -25,6 +26,7 @@ export default function Onboarding() {
     const nextErrors = {};
     if (!form.name.trim()) nextErrors.name = "Name is required";
     if (!form.age || form.age < 13 || form.age > 120) nextErrors.age = "Enter a valid age";
+    if (!/^\+?[0-9\s-]{7,20}$/.test(form.phone)) nextErrors.phone = "Enter a valid phone number";
     if (!form.role) nextErrors.role = "Select a role";
     if (!form.email.trim()) nextErrors.email = "Email is required";
     if (!form.password || form.password.length < 8) nextErrors.password = "Password must be at least 8 characters";
@@ -57,67 +59,81 @@ export default function Onboarding() {
       <h1 className="text-3xl font-medium mb-8">Let's set you up.</h1>
 
       <form onSubmit={handleSubmit} className="card flex flex-col gap-5">
-        <div>
-          <label className="text-sm font-medium mb-1 block">Name</label>
-          <input
-            value={form.name}
-            onChange={(e) => setForm({ ...form, name: e.target.value })}
-            className="w-full bg-petal-soft rounded-2xl px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
-          />
-          {errors.name && <p className="text-xs text-blossom-dark mt-1">{errors.name}</p>}
-        </div>
-
-        <div>
-          <label className="text-sm font-medium mb-1 block">Age</label>
-          <input
-            type="number"
-            value={form.age}
-            onChange={(e) => setForm({ ...form, age: e.target.value })}
-            className="w-full bg-petal-soft rounded-2xl px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
-          />
-          {errors.age && <p className="text-xs text-blossom-dark mt-1">{errors.age}</p>}
-        </div>
-
-        <div>
-          <label className="text-sm font-medium mb-1 block">Role</label>
-          <div className="grid grid-cols-2 gap-2">
-            {roleOptions.map((option) => (
-              <button
-                type="button"
-                key={option.value}
-                onClick={() => setForm({ ...form, role: option.value })}
-                className={`rounded-2xl px-4 py-3 text-sm font-medium transition-colors ${
-                  form.role === option.value ? "bg-blossom text-white" : "bg-petal-soft text-ink"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
+        <fieldset disabled={submitting} className="flex flex-col gap-5">
+          <div>
+            <label className="text-sm font-medium mb-1 block">Name</label>
+            <input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="w-full bg-petal-soft rounded-2xl px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
+            />
+            {errors.name && <p className="text-xs text-blossom-dark mt-1">{errors.name}</p>}
           </div>
-          {errors.role && <p className="text-xs text-blossom-dark mt-1">{errors.role}</p>}
-        </div>
 
-        <div>
-          <label className="text-sm font-medium mb-1 block">Email</label>
-          <input
-            type="email"
-            value={form.email}
-            onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full bg-petal-soft rounded-2xl px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
-          />
-          {errors.email && <p className="text-xs text-blossom-dark mt-1">{errors.email}</p>}
-        </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Age</label>
+            <input
+              type="number"
+              value={form.age}
+              onChange={(e) => setForm({ ...form, age: e.target.value })}
+              className="w-full bg-petal-soft rounded-2xl px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
+            />
+            {errors.age && <p className="text-xs text-blossom-dark mt-1">{errors.age}</p>}
+          </div>
 
-        <div>
-          <label className="text-sm font-medium mb-1 block">Password</label>
-          <input
-            type="password"
-            value={form.password}
-            onChange={(e) => setForm({ ...form, password: e.target.value })}
-            className="w-full bg-petal-soft rounded-2xl px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
-          />
-          {errors.password && <p className="text-xs text-blossom-dark mt-1">{errors.password}</p>}
-        </div>
+          <div>
+            <label className="text-sm font-medium mb-1 block">Phone number</label>
+            <input
+              type="tel"
+              value={form.phone}
+              onChange={(e) => setForm({ ...form, phone: e.target.value })}
+              placeholder="+91 98765 43210"
+              className="w-full bg-petal-soft rounded-2xl px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
+            />
+            {errors.phone && <p className="text-xs text-blossom-dark mt-1">{errors.phone}</p>}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-1 block">Role</label>
+            <div className="grid grid-cols-2 gap-2">
+              {roleOptions.map((option) => (
+                <button
+                  type="button"
+                  key={option.value}
+                  onClick={() => setForm({ ...form, role: option.value })}
+                  className={`rounded-2xl px-4 py-3 text-sm font-medium transition-colors ${
+                    form.role === option.value ? "bg-blossom text-white" : "bg-petal-soft text-ink"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            {errors.role && <p className="text-xs text-blossom-dark mt-1">{errors.role}</p>}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-1 block">Email</label>
+            <input
+              type="email"
+              value={form.email}
+              onChange={(e) => setForm({ ...form, email: e.target.value })}
+              className="w-full bg-petal-soft rounded-2xl px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
+            />
+            {errors.email && <p className="text-xs text-blossom-dark mt-1">{errors.email}</p>}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium mb-1 block">Password</label>
+            <input
+              type="password"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              className="w-full bg-petal-soft rounded-2xl px-4 py-3 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
+            />
+            {errors.password && <p className="text-xs text-blossom-dark mt-1">{errors.password}</p>}
+          </div>
+        </fieldset>
 
         {errors.form && <p className="text-xs text-blossom-dark">{errors.form}</p>}
 

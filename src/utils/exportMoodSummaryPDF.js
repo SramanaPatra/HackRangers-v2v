@@ -26,6 +26,12 @@ export function exportMoodSummaryPDF(entries, userName) {
   doc.line(marginX, cursorY, doc.internal.pageSize.getWidth() - marginX, cursorY);
   cursorY += 24;
 
+  if (entries.length === 0) {
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(90, 87, 79);
+    doc.text("No mood entries recorded yet.", marginX, cursorY);
+  }
+
   entries.forEach((entry) => {
     if (cursorY > 760) {
       doc.addPage();

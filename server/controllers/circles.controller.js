@@ -21,6 +21,50 @@ function buildCommentTree(flatComments) {
   return roots;
 }
 
+async function listCircles(req, res) {
+  const result = await pool.query(
+    `SELECT id, name, slug, created_at FROM circles ORDER BY name ASC`
+  );
+  res.json(result.rows);
+}
+
+async function listPosts(req, res) {
+  const { circleId } = req.params;
+
+  const result = await pool.query(
+    `SELECT p.id, p.body, p.created_at, u.name AS author_name,
+            COUNT(c.id) AS comment_count
+     FROM posts p
+     JOIN users u ON u.id = p.author_id
+     LEFT JOIN comments c ON c.post_id = p.id
+     WHERE p.circle_id = $1
+     GROUP BY p.id, u.name
+     ORDER BY p.created_at DESC`,
+    [circleId]
+  );
+
+  res.json(result.rows);
+}
+
+async function createPost(req, res) {
+  const { circleId } = req.params;
+  const { body } = req.body;
+  const authorId = req.user.id;
+
+  if (!body || !body.trim()) {
+    return res.status(400).json({ error: "Post body is required" });
+  }
+
+  const result = await pool.query(
+    `INSERT INTO posts (circle_id, author_id, body)
+     VALUES ($1, $2, $3)
+     RETURNING id, circle_id, body, created_at`,
+    [circleId, authorId, body]
+  );
+
+  res.status(201).json(result.rows[0]);
+}
+
 async function getComments(req, res) {
   const { postId } = req.params;
   const userId = req.user ? req.user.id : null;
@@ -109,4 +153,12 @@ async function unlikeComment(req, res) {
   res.json({ liked: false, totalLikes: Number(countResult.rows[0].count) });
 }
 
-module.exports = { getComments, createComment, likeComment, unlikeComment };
+module.exports = {
+  listCircles,
+  listPosts,
+  createPost,
+  getComments,
+  createComment,
+  likeComment,
+  unlikeComment,
+};

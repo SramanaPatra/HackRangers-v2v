@@ -1,6 +1,9 @@
-const Anthropic = require("@anthropic-ai/sdk");
+const OpenAI = require("openai");
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const groq = new OpenAI({
+  apiKey: process.env.GROQ_API_KEY,
+  baseURL: "https://api.groq.com/openai/v1",
+});
 
 const SYSTEM_PROMPT = [
   "You are a supportive companion inside a mental wellness app.",
@@ -20,29 +23,34 @@ async function chat(req, res) {
   res.setHeader("Transfer-Encoding", "chunked");
 
   try {
-    const stream = anthropic.messages.stream({
-      model: "claude-sonnet-4-6",
+    const stream = await grok.chat.completions.create({
+      model: "grok-4",
       max_tokens: 1024,
-      system: SYSTEM_PROMPT,
-      messages: messages.map((message) => ({
-        role: message.role,
-        content: message.content,
-      })),
+      stream: true,
+      messages: [
+        { role: "system", content: SYSTEM_PROMPT },
+        ...messages.map((message) => ({
+          role: message.role,
+          content: message.content,
+        })),
+      ],
     });
 
-    stream.on("text", (textDelta) => {
-      res.write(textDelta);
-    });
+    for await (const chunk of stream) {
+      const delta = chunk.choices[0]?.delta?.content;
+      if (delta) {
+        res.write(delta);
+      }
+    }
 
-    stream.on("end", () => {
-      res.end();
-    });
-
-    stream.on("error", () => {
-      res.status(500).end();
-    });
+    res.end();
   } catch (error) {
-    res.status(500).json({ error: "AI companion unavailable" });
+    console.error("Grok API error:", error);
+    if (!res.headersSent) {
+      res.status(500).json({ error: "AI companion unavailable" });
+    } else {
+      res.end();
+    }
   }
 }
 
