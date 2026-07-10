@@ -23,8 +23,8 @@ async function chat(req, res) {
   res.setHeader("Transfer-Encoding", "chunked");
 
   try {
-    const stream = await grok.chat.completions.create({
-      model: "grok-4",
+    const stream = await groq.chat.completions.create({
+      model: "openai/gpt-oss-20b",
       max_tokens: 1024,
       stream: true,
       messages: [
@@ -45,7 +45,7 @@ async function chat(req, res) {
 
     res.end();
   } catch (error) {
-    console.error("Grok API error:", error);
+    console.error("Groq API error:", error);
     if (!res.headersSent) {
       res.status(500).json({ error: "AI companion unavailable" });
     } else {
@@ -53,5 +53,4 @@ async function chat(req, res) {
     }
   }
 }
-
 module.exports = { chat };

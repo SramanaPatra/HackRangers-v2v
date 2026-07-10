@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { apiRequest } from "../api/client.js";
 
@@ -15,6 +15,8 @@ const tagOptions = [
   "Long hours", "Good feedback", "Learning something new", "Isolation",
 ];
 
+const moodByValue = Object.fromEntries(moods.map((m) => [m.value, m]));
+
 export default function Journal() {
   const [mood, setMood] = useState(null);
   const [tags, setTags] = useState([]);
@@ -22,6 +24,26 @@ export default function Journal() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+
+  const [entries, setEntries] = useState([]);
+  const [loadingEntries, setLoadingEntries] = useState(true);
+
+  const loadEntries = async () => {
+    setLoadingEntries(true);
+    try {
+      const data = await apiRequest("/mood/entries?days=30");
+      // API returns ascending by date; show most recent first
+      setEntries([...data].reverse());
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoadingEntries(false);
+    }
+  };
+
+  useEffect(() => {
+    loadEntries();
+  }, []);
 
   const toggleTag = (tag) =>
     setTags((t) => (t.includes(tag) ? t.filter((x) => x !== tag) : [...t, tag]));
@@ -43,6 +65,9 @@ export default function Journal() {
       });
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
+      setNote("");
+      setTags([]);
+      await loadEntries();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -124,6 +149,48 @@ export default function Journal() {
       )}
 
       {error && <p className="text-blossom-dark text-sm mt-3">{error}</p>}
+
+      <div className="mt-10">
+        <p className="font-medium mb-4">Past entries</p>
+
+        {loadingEntries && <p className="text-sm text-ink/50">Loading...</p>}
+
+        {!loadingEntries && entries.length === 0 && (
+          <p className="text-sm text-ink/50">No entries yet — your check-ins will show up here.</p>
+        )}
+
+        <div className="flex flex-col gap-3">
+          {entries.map((entry) => {
+            const m = moodByValue[entry.mood_score];
+            return (
+              <div key={entry.id} className="card">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{m?.emoji}</span>
+                    <span className="font-medium text-sm">{m?.label}</span>
+                  </div>
+                  <span className="text-xs text-ink/50">{entry.entry_date}</span>
+                </div>
+
+                {entry.tags?.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {entry.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="px-2 py-1 rounded-full text-xs bg-petal-soft text-ink/70"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                {entry.note && <p className="text-sm text-ink/70">{entry.note}</p>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }

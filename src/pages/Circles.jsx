@@ -11,6 +11,8 @@ export default function Circles() {
   const [postDraft, setPostDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [postError, setPostError] = useState("");
+  const [posting, setPosting] = useState(false);
 
   useEffect(() => {
     async function loadCircles() {
@@ -28,10 +30,14 @@ export default function Circles() {
   }, []);
 
   const loadPosts = useCallback(async (circleId) => {
-    const data = await apiRequest(`/circles/${circleId}/posts`);
-    setPosts(data);
-    setActivePost(null);
-    setComments([]);
+    try {
+      const data = await apiRequest(`/circles/${circleId}/posts`);
+      setPosts(data);
+      setActivePost(null);
+      setComments([]);
+    } catch (err) {
+      setError(err.message);
+    }
   }, []);
 
   useEffect(() => {
@@ -39,8 +45,12 @@ export default function Circles() {
   }, [activeCircle, loadPosts]);
 
   const loadComments = useCallback(async (postId) => {
-    const data = await apiRequest(`/circles/posts/${postId}/comments`);
-    setComments(data);
+    try {
+      const data = await apiRequest(`/circles/posts/${postId}/comments`);
+      setComments(data);
+    } catch (err) {
+      setError(err.message);
+    }
   }, []);
 
   const openPost = async (post) => {
@@ -50,27 +60,43 @@ export default function Circles() {
 
   const handleCreatePost = async () => {
     if (!postDraft.trim() || !activeCircle) return;
-    await apiRequest(`/circles/${activeCircle.id}/posts`, {
-      method: "POST",
-      body: JSON.stringify({ body: postDraft }),
-    });
-    setPostDraft("");
-    loadPosts(activeCircle.id);
+    setPosting(true);
+    setPostError("");
+    try {
+      await apiRequest(`/circles/${activeCircle.id}/posts`, {
+        method: "POST",
+        body: JSON.stringify({ body: postDraft }),
+      });
+      setPostDraft("");
+      await loadPosts(activeCircle.id);
+    } catch (err) {
+      setPostError(err.message || "Failed to post");
+    } finally {
+      setPosting(false);
+    }
   };
 
   const handleLike = async (commentId, alreadyLiked) => {
-    const method = alreadyLiked ? "DELETE" : "POST";
-    await apiRequest(`/circles/comments/${commentId}/like`, { method });
-    if (activePost) loadComments(activePost.id);
+    try {
+      const method = alreadyLiked ? "DELETE" : "POST";
+      await apiRequest(`/circles/comments/${commentId}/like`, { method });
+      if (activePost) loadComments(activePost.id);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   const handleReply = async (parentId, body) => {
     if (!activePost) return;
-    await apiRequest(`/circles/posts/${activePost.id}/comments`, {
-      method: "POST",
-      body: JSON.stringify({ body, parentId }),
-    });
-    loadComments(activePost.id);
+    try {
+      await apiRequest(`/circles/posts/${activePost.id}/comments`, {
+        method: "POST",
+        body: JSON.stringify({ body, parentId }),
+      });
+      loadComments(activePost.id);
+    } catch (err) {
+      setError(err.message);
+    }
   };
 
   if (loading) return <p className="text-ink-light text-sm">Loading circles...</p>;
@@ -106,9 +132,14 @@ export default function Circles() {
               className="w-full bg-petal-soft rounded-2xl p-4 text-sm resize-none mb-3
                          focus:outline-none focus-visible:ring-2 focus-visible:ring-blossom/40"
             />
-            <button onClick={handleCreatePost} className="btn-primary text-sm px-5 py-2.5">
-              Post
+            <button
+              onClick={handleCreatePost}
+              disabled={posting || !postDraft.trim()}
+              className="btn-primary text-sm px-5 py-2.5 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {posting ? "Posting..." : "Post"}
             </button>
+            {postError && <p className="text-blossom-dark text-sm mt-2">{postError}</p>}
           </div>
 
           {posts.length === 0 ? (
