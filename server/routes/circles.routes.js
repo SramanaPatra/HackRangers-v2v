@@ -20,4 +20,4 @@ router.post("/posts/:postId/comments", requireAuth, createComment);
 router.post("/comments/:commentId/like", requireAuth, likeComment);
 router.delete("/comments/:commentId/like", requireAuth, unlikeComment);
 
-module.exports = router;
+module.exports = router
