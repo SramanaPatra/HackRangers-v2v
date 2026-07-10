@@ -65,10 +65,13 @@ export default function Circles() {
         </button>
       </div>
 
-      {loading ? (
+  {loading ? (
         <p className="text-ink-light text-sm">Loading thread...</p>
       ) : (
         <div className="card divide-y divide-ink/5">
+          {comments.length === 0 && (
+            <p className="text-ink-light text-sm py-4">No threads yet — be the first to post.</p>
+          )}
           {comments.map((comment) => (
             <CommentThread key={comment.id} comment={comment} onLike={handleLike} onReply={handleReply} />
           ))}
